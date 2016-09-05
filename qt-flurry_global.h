@@ -1,0 +1,12 @@
+#ifndef QTFLURRY_GLOBAL_H
+#define QTFLURRY_GLOBAL_H
+
+#include <QtCore/qglobal.h>
+
+#if defined(QTFLURRY_LIBRARY)
+#  define QTFLURRYSHARED_EXPORT Q_DECL_EXPORT
+#else
+#  define QTFLURRYSHARED_EXPORT Q_DECL_IMPORT
+#endif
+
+#endif // QTFLURRY_GLOBAL_H
