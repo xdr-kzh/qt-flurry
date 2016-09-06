@@ -14,64 +14,86 @@ enum InfoTypes
     EVENT_ID = 9,
 };
 
-//appVersion: "bd",
-//Sa: "be",
-//Ga: "bk",
-//xa: "age",
-//ya: "bl",
-//location: "bf",
-//vb: "bj",
-//k: "timedEvents",
-//C: "eventCounter",
-//D: "bo",
-//V: "numEventsLogged",
-//Aa: "bm",
-//T: "totalEventNames",
-//s: "bn",
-//ma: "numEventNames",
-//H: "purchaseCounter",
-//X: "bv",
-//W: "numPurchasesLogged",
-//Ba: "bt",
-//oa: "totalPurchaseNames",
-//v: "bu",
-//na: "numPurchaseNames",
-//B: "errorCounter",
-//S: "by",
-//la: "numErrorsLogged",
-//Ia: "cd",
+//age: "age",
 //timestamp: "ba",
 //duration: "bb",
-//ja: "eventLogging",
-//pa: "sessionContinue",
-//r: "pauseTimestamp",
 //u: "bc",
-//La: "requestsMade",
+//appVersion: "bd",
+//Sa: "be",
+//location: "bf",
+//vb: "bj",
+//Ga: "bk",
+//ya: "bl",
+//Aa: "bm",
+//s: "bn",
+//D: "bo",
+//Ba: "bt",
+//v: "bu",
+//X: "bv",
+//S: "by",
+//Ia: "cd",
 //Lb: "ch"
-//timedEvents: "timedEvents",
 //eventLogging: "eventLogging",
-//sessionContinue: "sessionContinue",
-//pauseTimestamp: "pauseTimestamp",
-//age: "age",
+//eventCounter: "eventCounter",
+//errorCounter: "errorCounter"
 //numEventNames: "numEventNames",
 //numPurchaseNames: "numPurchaseNames",
-//requestsMade: "requestsMade",
-//totalEventNames: "totalEventNames",
-//totalPurchaseNames: "totalPurchaseNames",
 //numEventsLogged: "numEventsLogged",
 //numPurchasesLogged: "numPurchasesLogged",
 //numErrorsLogged: "numErrorsLogged",
-//eventCounter: "eventCounter",
+//timedEvents: "timedEvents",
+//totalEventNames: "totalEventNames",
+//totalPurchaseNames: "totalPurchaseNames",
 //purchaseCounter: "purchaseCounter",
-//errorCounter: "errorCounter"
+//sessionContinue: "sessionContinue",
+//pauseTimestamp: "pauseTimestamp",
+//requestsMade: "requestsMade",
 
 FlurryAgent::FlurryAgent()
 {
 }
 
-void FlurryAgent::init()
+void FlurryAgent::startSession(QString apiKey)
 {
-    load();
-    startSave();
-    delayedStartSend();
+    apiKey_ = apiKey;
 }
+
+void FlurryAgent::endSession()
+{}
+
+void FlurryAgent::pauseSession()
+{}
+
+void FlurryAgent::setUserId(QString userId)
+{}
+
+void FlurryAgent::setLocation(float latitude, float longitude, float accuracy)
+{}
+
+void FlurryAgent::logEvent(QString eventName, QMap<QString, QString> parameters, bool timedEvent)
+{
+    if(parameters.isEmpty())
+    {
+        ;
+    }
+}
+
+void FlurryAgent::endTimedEvent(QString eventName, QMap<QString, QString> parameters)
+{
+    if(parameters.isEmpty())
+    {
+        ;
+    }
+}
+
+void FlurryAgent::setRequestInterval(int timeInSeconds)
+{}
+
+void FlurryAgent::setAppVersion(QString appVersion)
+{}
+
+void FlurryAgent::logError(QString errorName, QString errorMessage, int lineNumber)
+{}
+
+void FlurryAgent::setSessionContinueSeconds(int seconds)
+{}

@@ -1,8 +1,6 @@
 INCLUDEPATH += $$PWD
-HEADERS += $$PWD/flurryagent.h \
-    $$PWD/statistics.h
-SOURCES += $$PWD/flurryagent.cpp \
-    $$PWD/statistics.cpp
+HEADERS += $$PWD/flurryagent.h
+SOURCES += $$PWD/flurryagent.cpp
 
 DISTFILES += \
     $$PWD/flurry.js
