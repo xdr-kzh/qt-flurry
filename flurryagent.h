@@ -3,6 +3,7 @@
 
 #include <QString>
 #include <QMap>
+#include <QNetworkAccessManager>
 
 class FlurryAgent
 {
@@ -29,7 +30,13 @@ public:
     void setSessionContinueSeconds(int seconds);
 
 private:
+    void sendData();
+    void formData();
+    void formEvent();
+
+private:
     QString apiKey_;
+    QNetworkAccessManager networkManager_;
 };
 
 #endif // FLURRYAGENT_H
