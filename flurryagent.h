@@ -8,7 +8,7 @@
 class FlurryAgent
 {
     const static QString FLURRY_BASE_URL;
-
+    static qint64 CURRENT_EVENT_ID;
 public:
     FlurryAgent();
 
@@ -30,9 +30,9 @@ public:
     void setSessionContinueSeconds(int seconds);
 
 private:
-    void sendData();
+    void sendData(QString postData);
     void formData();
-    void formEvent();
+    QJsonObject formEvent(QString eventName, const QMap<QString, QString>& parameters);
 
 private:
     QString apiKey_;

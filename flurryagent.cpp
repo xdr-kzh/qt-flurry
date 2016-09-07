@@ -9,6 +9,7 @@
 #include "utils.h"
 
 const QString FlurryAgent::FLURRY_BASE_URL = QString::fromUtf8("https://data.flurry.com/aah.do");
+qint64 FlurryAgent::CURRENT_EVENT_ID = 0;
 
 enum InfoTypes
 {
@@ -79,9 +80,10 @@ void FlurryAgent::setLocation(float latitude, float longitude, float accuracy)
 
 void FlurryAgent::logEvent(QString eventName, QMap<QString, QString> parameters, bool timedEvent)
 {
-    if(parameters.isEmpty())
+    CURRENT_EVENT_ID++;
+    if(!parameters.isEmpty())
     {
-        ;
+        QJsonObject eventJson = formEvent(eventName, parameters);
     }
 }
 
@@ -105,7 +107,7 @@ void FlurryAgent::logError(QString errorName, QString errorMessage, int lineNumb
 void FlurryAgent::setSessionContinueSeconds(int seconds)
 {}
 
-void FlurryAgent::sendData(const QString& postData)
+void FlurryAgent::sendData(QString postData)
 {
     QNetworkRequest sendDataRequest;
 //    core::http_request_simple post_request(_user_proxy, utils::get_user_agent(), stop_handler);
@@ -117,9 +119,9 @@ void FlurryAgent::sendData(const QString& postData)
     QByteArray base64Data;
     base64Data.append(postData);
     urlQuery.addQueryItem("d", base64Data.toBase64());
-    urlQuery.addQueryItem("c", utils::adler32(postData.toStdString()));
+    urlQuery.addQueryItem("c", QString::fromStdString(utils::adler32(postData.toStdString())));
 
-    sendDataRequest.setUrl(urlQuery);
+    sendDataRequest.setUrl(urlQuery.query());
 
     networkManager_.get(sendDataRequest);
 }
@@ -135,6 +137,21 @@ void FlurryAgent::formData()
 //                << "\"cg\":\"" << user_key
 //    << "\"},\"b\":[{\"bd\":\"\",\"be\":\"\",\"bk\":-1,\"bl\":0,\"bj\":\"ru\",\"bo\":[";
 
+    //    auto time = std::chrono::system_clock::to_time_t(begin->get_time()) * 1000; // milliseconds;
+    //    auto time1 = time + 4;
+    //    auto time2 = time + 6;
+    //    auto time3 = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now()) * 1000;
+    //    auto delta = time3 - time;
+    //    auto bq = 11;
+
+    //    auto version = core::utils::get_user_agent();
+
+    //TODO it is time of the event creation
+    auto time = QDateTime::currentMSecsSinceEpoch(); // milliseconds;
+    auto time1 = time + 4;
+    auto time3 = QDateTime::currentMSecsSinceEpoch();
+    auto delta = time3 - time;
+
     QJsonObject flurryBaseData;
     flurryBaseData.insert("af", time3);
     flurryBaseData.insert("aa", 1);
@@ -142,7 +159,8 @@ void FlurryAgent::formData()
     flurryBaseData.insert("ag", time);
     flurryBaseData.insert("ah", time1);
     flurryBaseData.insert("ak", 1);
-    flurryBaseData.insert("cg", user_key);
+    //TODO generate some unique user key
+    flurryBaseData.insert("cg", "user_key");
 
     QJsonArray bData;
     QJsonObject partData;
@@ -154,7 +172,6 @@ void FlurryAgent::formData()
     QJsonArray events;
 //    data_stream << events_to_json(begin, end, time);
 //  TODO something like FOREACH
-    events.append(formEvent());
     partData.insert("bo", events);
 
 //    data_stream << "}"
@@ -177,14 +194,22 @@ void FlurryAgent::formData()
 //    data.insert("b", );
 }
 
-QJsonObject FlurryAgent::formEvent()
+QJsonObject FlurryAgent::formEvent(QString eventName, const QMap<QString, QString>& parameters)
 {
+    //TODO make an explicit parameter
+    auto startTime = QDateTime::currentMSecsSinceEpoch();
+    QJsonObject eventParameters;
+    foreach(QString key, parameters.keys()){
+        eventParameters.insert(key, parameters.value(key));
+    }
+
     QJsonObject event;
-    event.insert("ce", eventId);
-    event.insert("bp", name);
-    event.insert("bq", milliseconds);
-    event.insert("bs", milliseconds);
-    event.insert("br", br);
+    event.insert("ce", CURRENT_EVENT_ID);
+    event.insert("bp", eventName);
+    //TODO event creation milliseonds timestamp
+    event.insert("bq", QDateTime::currentMSecsSinceEpoch() - startTime);
+    event.insert("bs", eventParameters);
+    event.insert("br", 0);
 
 //    result << "{\"ce\":" << event_id_
 //            << ",\"bp\":\"" << name_

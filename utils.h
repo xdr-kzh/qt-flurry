@@ -1,6 +1,8 @@
 #ifndef UTILS_H
 #define UTILS_H
 
+#include <string>
+
 namespace utils
 {
     std::string adler32(const std::string& _input)
