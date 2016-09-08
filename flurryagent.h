@@ -10,6 +10,7 @@ class FlurryAgent
 {
     const static QString FLURRY_BASE_URL;
     static qint64 CURRENT_EVENT_ID;
+    const static uint DEFAULT_SENDING_INTERVAL;
 
 private:
     class FlurryEvent
@@ -63,6 +64,7 @@ private:
     QNetworkAccessManager networkManager_;
     QList<FlurryEvent> events_;
     qint64 sessionStartTime_;
+    uint sendingInterval_;
 };
 
 #endif // FLURRYAGENT_H

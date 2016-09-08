@@ -12,6 +12,11 @@
 
 const QString FlurryAgent::FLURRY_BASE_URL = QString::fromUtf8("https://data.flurry.com/aah.do");
 qint64 FlurryAgent::CURRENT_EVENT_ID = 0;
+#ifdef DEBUG
+    const uint FlurryAgent::DEFAULT_SENDING_INTERVAL = 20 * 1; // 20 seconds for debug
+#else
+    const uint FlurryAgent::DEFAULT_SENDING_INTERVAL = 60 * 60; // 1 hour for release
+#endif // DEBUG
 
 //age: "age",
 //timestamp: "ba",
@@ -51,6 +56,7 @@ qint64 FlurryAgent::CURRENT_EVENT_ID = 0;
 FlurryAgent::FlurryAgent()
 {
     appVersion_ = QCoreApplication::instance()->applicationVersion();
+    sendingInterval_ = DEFAULT_SENDING_INTERVAL;
 }
 
 void FlurryAgent::startSession(QString apiKey)
@@ -85,7 +91,9 @@ void FlurryAgent::endTimedEvent(QString eventName, QMap<QString, QString> parame
 {}
 
 void FlurryAgent::setRequestInterval(int timeInSeconds)
-{}
+{
+    sendingInterval_ = timeInSeconds;
+}
 
 void FlurryAgent::setAppVersion(QString appVersion)
 {
