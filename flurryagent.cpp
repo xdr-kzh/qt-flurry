@@ -83,7 +83,10 @@ void FlurryAgent::logEvent(QString eventName, QMap<QString, QString> parameters,
     CURRENT_EVENT_ID++;
     if(!parameters.isEmpty())
     {
-        QJsonObject eventJson = formEvent(eventName, parameters);
+
+        //TODO make an explicit parameter
+        auto startTime = QDateTime::currentMSecsSinceEpoch();
+        QJsonObject eventJson = formEvent(eventName, parameters, startTime);
     }
 }
 
@@ -126,17 +129,8 @@ void FlurryAgent::sendData(QString postData)
     networkManager_.get(sendDataRequest);
 }
 
-void FlurryAgent::formData()
+QJsonObject FlurryAgent::formData()
 {
-//    data_stream << "{\"a\":{\"af\":" << time3
-//                <<",\"aa\":1,\"ab\":10,\"ac\":9,\"ae\":\""<< version
-//                << "\",\"ad\":\"" << flurry_key
-//                << "\",\"ag\":" << time
-//                << ",\"ah\":" << time1
-//                << ",\"ak\":1,"
-//                << "\"cg\":\"" << user_key
-//    << "\"},\"b\":[{\"bd\":\"\",\"be\":\"\",\"bk\":-1,\"bl\":0,\"bj\":\"ru\",\"bo\":[";
-
     //    auto time = std::chrono::system_clock::to_time_t(begin->get_time()) * 1000; // milliseconds;
     //    auto time1 = time + 4;
     //    auto time2 = time + 6;
@@ -162,42 +156,37 @@ void FlurryAgent::formData()
     //TODO generate some unique user key
     flurryBaseData.insert("cg", "user_key");
 
-    QJsonArray bData;
-    QJsonObject partData;
-    partData.insert("bd", "");
-    partData.insert("be", "");
-    partData.insert("bk", -1);
-    partData.insert("bj", "ru");
+    QJsonArray eventsData;
+    QJsonObject eventsDataObject;
+    eventsDataObject.insert("bd", "");
+    eventsDataObject.insert("be", "");
+    eventsDataObject.insert("bk", -1);
+    eventsDataObject.insert("bj", "ru");
 
     QJsonArray events;
 //    data_stream << events_to_json(begin, end, time);
 //  TODO something like FOREACH
-    partData.insert("bo", events);
+    eventsDataObject.insert("bo", events);
 
-//    data_stream << "}"
-//        <<",\"bv\":[],\"bt\":false,\"bu\":{},\"by\":[],\"cd\":0,"
-//        << "\"ba\":" << time1
-//        << ",\"bb\":" << delta
-//        << ",\"bc\":-1,\"ch\":\"Etc/GMT-3\"}]}";
-    QJsonObject finalLine;
-    finalLine.insert("bv", QJsonArray());
-    finalLine.insert("bt", false);
-    finalLine.insert("bu", QJsonObject());
-    finalLine.insert("by", QJsonArray());
-    finalLine.insert("ba", time1);
-    finalLine.insert("bb", delta);
-    finalLine.insert("bc", -1);
-    finalLine.insert("ch", "Etc/GMT-3");
+    eventsDataObject.insert("bv", QJsonArray());
+    eventsDataObject.insert("bt", false);
+    eventsDataObject.insert("bu", QJsonObject());
+    eventsDataObject.insert("by", QJsonArray());
+    eventsDataObject.insert("ba", time1);
+    eventsDataObject.insert("bb", delta);
+    eventsDataObject.insert("bc", -1);
+    eventsDataObject.insert("ch", "Etc/GMT-3");
+
+    eventsData.append(eventsDataObject);
 
     QJsonObject data;
     data.insert("a", flurryBaseData);
-//    data.insert("b", );
+    data.insert("b", eventsData);
+    return data;
 }
 
-QJsonObject FlurryAgent::formEvent(QString eventName, const QMap<QString, QString>& parameters)
+QJsonObject FlurryAgent::formEvent(QString eventName, const QMap<QString, QString>& parameters, qint64 startTime)
 {
-    //TODO make an explicit parameter
-    auto startTime = QDateTime::currentMSecsSinceEpoch();
     QJsonObject eventParameters;
     foreach(QString key, parameters.keys()){
         eventParameters.insert(key, parameters.value(key));

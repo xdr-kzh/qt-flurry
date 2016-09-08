@@ -31,8 +31,8 @@ public:
 
 private:
     void sendData(QString postData);
-    void formData();
-    QJsonObject formEvent(QString eventName, const QMap<QString, QString>& parameters);
+    QJsonObject formData();
+    QJsonObject formEvent(QString eventName, const QMap<QString, QString>& parameters, qint64 startTime);
 
 private:
     QString apiKey_;
