@@ -29,9 +29,9 @@ public:
 
     void setSessionContinueSeconds(int seconds);
 
+    QJsonObject formData();
 private:
     void sendData(QString postData);
-    QJsonObject formData();
     QJsonObject formEvent(QString eventName, const QMap<QString, QString>& parameters, qint64 startTime);
 
 private:
