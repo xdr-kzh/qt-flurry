@@ -3,12 +3,34 @@
 
 #include <QString>
 #include <QMap>
+#include <QList>
 #include <QNetworkAccessManager>
 
 class FlurryAgent
 {
     const static QString FLURRY_BASE_URL;
-    static qint64 CURRENT_EVENT_ID;
+    static quint64 CURRENT_EVENT_ID;
+
+private:
+    class FlurryEvent
+    {
+    public:
+        FlurryEvent(QString eventName, const QMap<QString, QString>& params, qint64 startTime);
+
+        const QString& eventName();
+
+        const QMap<QString, QString>& parameters();
+
+        quint64 startTime() const;
+
+        quint64 id() const;
+    private:
+        QString eventName_;
+        QMap<QString, QString> parameters_;
+        quint64 startTime_;
+        quint64 id_;
+    };
+
 public:
     FlurryAgent();
 
@@ -30,13 +52,18 @@ public:
     void setSessionContinueSeconds(int seconds);
 
     QJsonObject formData();
+
 private:
     void sendData(QString postData);
+
+    QJsonObject formEvent(const FlurryAgent::FlurryEvent& event);
     QJsonObject formEvent(QString eventName, const QMap<QString, QString>& parameters, qint64 startTime);
 
 private:
     QString apiKey_;
+    QString appVersion_;
     QNetworkAccessManager networkManager_;
+    QList<FlurryEvent> events_;
 };
 
 #endif // FLURRYAGENT_H

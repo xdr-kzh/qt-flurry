@@ -5,11 +5,12 @@
 #include <QUrlQuery>
 #include <QJsonObject>
 #include <QJsonArray>
+#include <QCoreApplication>
 
 #include "utils.h"
 
 const QString FlurryAgent::FLURRY_BASE_URL = QString::fromUtf8("https://data.flurry.com/aah.do");
-qint64 FlurryAgent::CURRENT_EVENT_ID = 0;
+quint64 FlurryAgent::CURRENT_EVENT_ID = 0;
 
 enum InfoTypes
 {
@@ -59,7 +60,9 @@ enum InfoTypes
 //requestsMade: "requestsMade",
 
 FlurryAgent::FlurryAgent()
-{}
+{
+    appVersion_ = QCoreApplication::instance()->applicationVersion();
+}
 
 void FlurryAgent::startSession(QString apiKey)
 {
@@ -80,29 +83,24 @@ void FlurryAgent::setLocation(float latitude, float longitude, float accuracy)
 
 void FlurryAgent::logEvent(QString eventName, QMap<QString, QString> parameters, bool timedEvent)
 {
-    CURRENT_EVENT_ID++;
-    if(!parameters.isEmpty())
+    if(!timedEvent)
     {
-
-        //TODO make an explicit parameter
-        auto startTime = QDateTime::currentMSecsSinceEpoch();
-        QJsonObject eventJson = formEvent(eventName, parameters, startTime);
+        CURRENT_EVENT_ID++;
+        FlurryEvent event(eventName, parameters, QDateTime::currentMSecsSinceEpoch());
+        events_.push_back(event);
     }
 }
 
 void FlurryAgent::endTimedEvent(QString eventName, QMap<QString, QString> parameters)
-{
-    if(parameters.isEmpty())
-    {
-        ;
-    }
-}
+{}
 
 void FlurryAgent::setRequestInterval(int timeInSeconds)
 {}
 
 void FlurryAgent::setAppVersion(QString appVersion)
-{}
+{
+    appVersion_ = appVersion;
+}
 
 void FlurryAgent::logError(QString errorName, QString errorMessage, int lineNumber)
 {}
@@ -158,14 +156,16 @@ QJsonObject FlurryAgent::formData()
 
     QJsonArray eventsData;
     QJsonObject eventsDataObject;
-    eventsDataObject.insert("bd", "");
+    //TODO It is an app version?
+    eventsDataObject.insert("bd", appVersion_);
     eventsDataObject.insert("be", "");
     eventsDataObject.insert("bk", -1);
     eventsDataObject.insert("bj", "ru");
 
     QJsonArray events;
-//    data_stream << events_to_json(begin, end, time);
-//  TODO something like FOREACH
+    foreach (FlurryEvent event, events_) {
+        events.append(formEvent(event));
+    }
     eventsDataObject.insert("bo", events);
 
     eventsDataObject.insert("bv", QJsonArray());
@@ -185,8 +185,14 @@ QJsonObject FlurryAgent::formData()
     return data;
 }
 
-QJsonObject FlurryAgent::formEvent(QString eventName, const QMap<QString, QString>& parameters, qint64 startTime)
+QJsonObject FlurryAgent::formEvent(const FlurryEvent& event)
 {
+    return formEvent(event.eventName(), event.parameters(), event.startTime());
+}
+
+QJsonObject FlurryAgent::formEvent(QString eventName, const QMap<QString, QString>& parameters, quint64 startTime)
+{
+    //TODO check event parameters forming
     QJsonObject eventParameters;
     foreach(QString key, parameters.keys()){
         eventParameters.insert(key, parameters.value(key));
@@ -206,4 +212,28 @@ QJsonObject FlurryAgent::formEvent(QString eventName, const QMap<QString, QStrin
 //            << ",\"bs\":{" << params_in_json.str() <<"},"
 //    << "\"br\":" << br << "}";
     return event;
+}
+
+FlurryAgent::FlurryEvent::FlurryEvent(QString eventName, const QMap<QString, QString>& params, quint64 startTime):
+    eventName_(eventName), parameters_(params), startTime_(startTime), id_(CURRENT_EVENT_ID)
+{}
+
+const QString& FlurryAgent::FlurryEvent::eventName()
+{
+    return eventName_;
+}
+
+const QMap<QString, QString>& FlurryAgent::FlurryEvent::parameters()
+{
+    return parameters_;
+}
+
+quint64 FlurryAgent::FlurryEvent::startTime() const
+{
+    return startTime_;
+}
+
+quint64 FlurryAgent::FlurryEvent::id() const
+{
+    return id_;
 }
