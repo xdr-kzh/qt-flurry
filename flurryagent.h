@@ -9,7 +9,7 @@
 class FlurryAgent
 {
     const static QString FLURRY_BASE_URL;
-    static quint64 CURRENT_EVENT_ID;
+    static qint64 CURRENT_EVENT_ID;
 
 private:
     class FlurryEvent
@@ -17,18 +17,16 @@ private:
     public:
         FlurryEvent(QString eventName, const QMap<QString, QString>& params, qint64 startTime);
 
-        const QString& eventName();
+        const QString& eventName() const;
+        const QMap<QString, QString>& parameters() const;
+        qint64 startTime() const;
+        qint64 id() const;
 
-        const QMap<QString, QString>& parameters();
-
-        quint64 startTime() const;
-
-        quint64 id() const;
     private:
         QString eventName_;
         QMap<QString, QString> parameters_;
-        quint64 startTime_;
-        quint64 id_;
+        qint64 startTime_;
+        qint64 id_;
     };
 
 public:
@@ -55,15 +53,16 @@ public:
 
 private:
     void sendData(QString postData);
+    void clearData();
 
-    QJsonObject formEvent(const FlurryAgent::FlurryEvent& event);
-    QJsonObject formEvent(QString eventName, const QMap<QString, QString>& parameters, qint64 startTime);
+    QJsonObject formEvent(const FlurryAgent::FlurryEvent& event, qint64 sessionStartTime);
 
 private:
     QString apiKey_;
     QString appVersion_;
     QNetworkAccessManager networkManager_;
     QList<FlurryEvent> events_;
+    qint64 sessionStartTime_;
 };
 
 #endif // FLURRYAGENT_H

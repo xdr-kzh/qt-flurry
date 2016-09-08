@@ -2,6 +2,7 @@
 
 #include <QNetworkAccessManager>
 #include <QNetworkRequest>
+#include <QNetworkReply>
 #include <QUrlQuery>
 #include <QJsonObject>
 #include <QJsonArray>
@@ -10,19 +11,7 @@
 #include "utils.h"
 
 const QString FlurryAgent::FLURRY_BASE_URL = QString::fromUtf8("https://data.flurry.com/aah.do");
-quint64 FlurryAgent::CURRENT_EVENT_ID = 0;
-
-enum InfoTypes
-{
-    //0,2 and 3 reserved
-    EVENT_NAME = 1,
-    EVENT_PROPS = 4,
-    EVENT_PROP_NAME = 5,
-    EVENT_PROP_VALUE = 6,
-    LAST_SENT_TIME = 7,
-    EVENT_TIME = 8,
-    EVENT_ID = 9,
-};
+qint64 FlurryAgent::CURRENT_EVENT_ID = 0;
 
 //age: "age",
 //timestamp: "ba",
@@ -67,6 +56,7 @@ FlurryAgent::FlurryAgent()
 void FlurryAgent::startSession(QString apiKey)
 {
     apiKey_ = apiKey;
+    sessionStartTime_ = QDateTime::currentMSecsSinceEpoch();
 }
 
 void FlurryAgent::endSession()
@@ -124,31 +114,32 @@ void FlurryAgent::sendData(QString postData)
 
     sendDataRequest.setUrl(urlQuery.query());
 
-    networkManager_.get(sendDataRequest);
+    QNetworkReply* postDataReply = networkManager_.get(sendDataRequest);
+    postDataReply->connect(postDataReply, &QNetworkReply::finished, [this, postDataReply]
+    {
+        clearData();
+        postDataReply->deleteLater();
+    });
+}
+
+void FlurryAgent::clearData()
+{
+    events_.clear();
 }
 
 QJsonObject FlurryAgent::formData()
 {
-    //    auto time = std::chrono::system_clock::to_time_t(begin->get_time()) * 1000; // milliseconds;
-    //    auto time1 = time + 4;
-    //    auto time2 = time + 6;
-    //    auto time3 = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now()) * 1000;
-    //    auto delta = time3 - time;
-    //    auto bq = 11;
-
     //    auto version = core::utils::get_user_agent();
 
-    //TODO it is time of the event creation
-    auto time = QDateTime::currentMSecsSinceEpoch(); // milliseconds;
-    auto time1 = time + 4;
+    auto time1 = sessionStartTime_ + 4;
     auto time3 = QDateTime::currentMSecsSinceEpoch();
-    auto delta = time3 - time;
+    auto delta = time3 - sessionStartTime_;
 
     QJsonObject flurryBaseData;
     flurryBaseData.insert("af", time3);
     flurryBaseData.insert("aa", 1);
     flurryBaseData.insert("ad", apiKey_);
-    flurryBaseData.insert("ag", time);
+    flurryBaseData.insert("ag", sessionStartTime_);
     flurryBaseData.insert("ah", time1);
     flurryBaseData.insert("ak", 1);
     //TODO generate some unique user key
@@ -164,7 +155,7 @@ QJsonObject FlurryAgent::formData()
 
     QJsonArray events;
     foreach (FlurryEvent event, events_) {
-        events.append(formEvent(event));
+        events.append(formEvent(event, sessionStartTime_));
     }
     eventsDataObject.insert("bo", events);
 
@@ -185,55 +176,43 @@ QJsonObject FlurryAgent::formData()
     return data;
 }
 
-QJsonObject FlurryAgent::formEvent(const FlurryEvent& event)
+QJsonObject FlurryAgent::formEvent(const FlurryEvent& event, qint64 sessionStartTime)
 {
-    return formEvent(event.eventName(), event.parameters(), event.startTime());
-}
-
-QJsonObject FlurryAgent::formEvent(QString eventName, const QMap<QString, QString>& parameters, quint64 startTime)
-{
-    //TODO check event parameters forming
     QJsonObject eventParameters;
-    foreach(QString key, parameters.keys()){
-        eventParameters.insert(key, parameters.value(key));
+    foreach(QString key, event.parameters().keys()){
+        eventParameters.insert(key, event.parameters().value(key));
     }
 
-    QJsonObject event;
-    event.insert("ce", CURRENT_EVENT_ID);
-    event.insert("bp", eventName);
-    //TODO event creation milliseonds timestamp
-    event.insert("bq", QDateTime::currentMSecsSinceEpoch() - startTime);
-    event.insert("bs", eventParameters);
-    event.insert("br", 0);
+    QJsonObject jsonEvent;
+    jsonEvent.insert("ce", CURRENT_EVENT_ID);
+    jsonEvent.insert("bp", event.eventName());
+    jsonEvent.insert("bq", event.startTime() - sessionStartTime);
+    jsonEvent.insert("bs", eventParameters);
+    jsonEvent.insert("br", 0);
 
-//    result << "{\"ce\":" << event_id_
-//            << ",\"bp\":\"" << name_
-//            << "\",\"bq\":" << std::chrono::system_clock::to_time_t(event_time_) * 1000 - _start_time// milliseconds
-//            << ",\"bs\":{" << params_in_json.str() <<"},"
-//    << "\"br\":" << br << "}";
-    return event;
+    return jsonEvent;
 }
 
-FlurryAgent::FlurryEvent::FlurryEvent(QString eventName, const QMap<QString, QString>& params, quint64 startTime):
+FlurryAgent::FlurryEvent::FlurryEvent(QString eventName, const QMap<QString, QString>& params, qint64 startTime):
     eventName_(eventName), parameters_(params), startTime_(startTime), id_(CURRENT_EVENT_ID)
 {}
 
-const QString& FlurryAgent::FlurryEvent::eventName()
+const QString& FlurryAgent::FlurryEvent::eventName() const
 {
     return eventName_;
 }
 
-const QMap<QString, QString>& FlurryAgent::FlurryEvent::parameters()
+const QMap<QString, QString>& FlurryAgent::FlurryEvent::parameters() const
 {
     return parameters_;
 }
 
-quint64 FlurryAgent::FlurryEvent::startTime() const
+qint64 FlurryAgent::FlurryEvent::startTime() const
 {
     return startTime_;
 }
 
-quint64 FlurryAgent::FlurryEvent::id() const
+qint64 FlurryAgent::FlurryEvent::id() const
 {
     return id_;
 }
