@@ -14,9 +14,9 @@
 const QString FlurryAgent::FLURRY_BASE_URL = QString::fromUtf8("https://data.flurry.com/aah.do");
 qint64 FlurryAgent::CURRENT_EVENT_ID = 0;
 #ifdef DEBUG
-    const uint FlurryAgent::DEFAULT_SENDING_INTERVAL = 20 * 1; // 20 seconds for debug
+    const int FlurryAgent::DEFAULT_SENDING_INTERVAL = 20 * 1 * 1000; // 20 seconds for debug
 #else
-    const uint FlurryAgent::DEFAULT_SENDING_INTERVAL = 60 * 60; // 1 hour for release
+    const int FlurryAgent::DEFAULT_SENDING_INTERVAL = 60 * 60 * 1000; // 1 hour for release
 #endif // DEBUG
 
 //age: "age",
@@ -64,8 +64,8 @@ void FlurryAgent::startSession(QString apiKey)
 {
     apiKey_ = apiKey;
     sessionStartTime_ = QDateTime::currentMSecsSinceEpoch();
-    connect(&sendTimer_, SIGNAL(timeout()), this, SLOT(sendData()));
-    sendTimer_.start(sendingInterval_ * 1000);
+    connect(&sendTimer_, &QTimer::timeout, this, &FlurryAgent::sendData);
+    sendTimer_.start(sendingInterval_);
 }
 
 void FlurryAgent::endSession()
@@ -85,16 +85,25 @@ void FlurryAgent::setLocation(float latitude, float longitude, float accuracy)
 
 void FlurryAgent::logEvent(QString eventName, QMap<QString, QString> parameters, bool timedEvent)
 {
-    if(!timedEvent)
-    {
-        CURRENT_EVENT_ID++;
-        FlurryEvent event(eventName, parameters, QDateTime::currentMSecsSinceEpoch());
-        events_.push_back(event);
-    }
+    CURRENT_EVENT_ID++;
+    FlurryEvent event(eventName, parameters, QDateTime::currentMSecsSinceEpoch() - sessionStartTime_);
+    events_.push_back(event);
 }
 
 void FlurryAgent::endTimedEvent(QString eventName, QMap<QString, QString> parameters)
-{}
+{
+    qint64 endTime = QDateTime::currentMSecsSinceEpoch() - sessionStartTime_;
+    foreach(FlurryEvent event, events_){
+        if(event.eventName() == eventName){
+            if(!parameters.isEmpty())
+            {
+                event.setParameters(parameters);
+            }
+            event.setDuration(endTime - event.deltaTime());
+            break;
+        }
+    }
+}
 
 void FlurryAgent::setRequestInterval(int timeInSeconds)
 {
@@ -130,6 +139,10 @@ void FlurryAgent::sendData()
     urlQuery.addQueryItem("c", QString::fromStdString(utils::adler32(postData.toStdString())));
 
     sendDataRequest.setUrl(urlQuery.query());
+
+    qDebug() << "[FlurryAgent] " << "Query: " << urlQuery.query();
+
+    qDebug() << "[FlurryAgent] " << "Data: " << postData;
 
     QNetworkReply* postDataReply = networkManager_.get(sendDataRequest);
     postDataReply->connect(postDataReply, &QNetworkReply::finished, [this, postDataReply]
@@ -172,7 +185,7 @@ QJsonObject FlurryAgent::formData()
 
     QJsonArray events;
     foreach (FlurryEvent event, events_) {
-        events.append(formEvent(event, sessionStartTime_));
+        events.append(formEventToJson(event));
     }
     eventsDataObject.insert("bo", events);
 
@@ -193,7 +206,7 @@ QJsonObject FlurryAgent::formData()
     return data;
 }
 
-QJsonObject FlurryAgent::formEvent(const FlurryEvent& event, qint64 sessionStartTime)
+QJsonObject FlurryAgent::formEventToJson(const FlurryEvent& event)
 {
     QJsonObject eventParameters;
     foreach(QString key, event.parameters().keys()){
@@ -203,15 +216,17 @@ QJsonObject FlurryAgent::formEvent(const FlurryEvent& event, qint64 sessionStart
     QJsonObject jsonEvent;
     jsonEvent.insert("ce", CURRENT_EVENT_ID);
     jsonEvent.insert("bp", event.eventName());
-    jsonEvent.insert("bq", event.startTime() - sessionStartTime);
+    jsonEvent.insert("bq", event.deltaTime());
     jsonEvent.insert("bs", eventParameters);
+    //JESUS CHRIST, IS IT TIMED EVENT ?
+    //jsonEvent.insert("br", event.duration());
     jsonEvent.insert("br", 0);
 
     return jsonEvent;
 }
 
-FlurryAgent::FlurryEvent::FlurryEvent(QString eventName, const QMap<QString, QString>& params, qint64 startTime):
-    eventName_(eventName), parameters_(params), startTime_(startTime), id_(CURRENT_EVENT_ID)
+FlurryAgent::FlurryEvent::FlurryEvent(QString eventName, const QMap<QString, QString>& params, qint64 deltaTime):
+    eventName_(eventName), parameters_(params), deltaTime_(deltaTime), id_(CURRENT_EVENT_ID)
 {}
 
 const QString& FlurryAgent::FlurryEvent::eventName() const
@@ -224,12 +239,27 @@ const QMap<QString, QString>& FlurryAgent::FlurryEvent::parameters() const
     return parameters_;
 }
 
-qint64 FlurryAgent::FlurryEvent::startTime() const
+qint64 FlurryAgent::FlurryEvent::deltaTime() const
 {
-    return startTime_;
+    return deltaTime_;
 }
 
 qint64 FlurryAgent::FlurryEvent::id() const
 {
     return id_;
+}
+
+qint64 FlurryAgent::FlurryEvent::duration() const
+{
+    return duration_;
+}
+
+void FlurryAgent::FlurryEvent::setDuration(const qint64 &duration)
+{
+    duration_ = duration;
+}
+
+void FlurryAgent::FlurryEvent::setParameters(const QMap<QString, QString> &parameters)
+{
+    parameters_ = parameters;
 }
