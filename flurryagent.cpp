@@ -1,12 +1,13 @@
 #include "flurryagent.h"
 
+#include <QCoreApplication>
+#include <QJsonArray>
+#include <QJsonDocument>
+#include <QJsonObject>
 #include <QNetworkAccessManager>
 #include <QNetworkRequest>
 #include <QNetworkReply>
 #include <QUrlQuery>
-#include <QJsonObject>
-#include <QJsonArray>
-#include <QCoreApplication>
 
 #include "utils.h"
 
@@ -63,16 +64,21 @@ void FlurryAgent::startSession(QString apiKey)
 {
     apiKey_ = apiKey;
     sessionStartTime_ = QDateTime::currentMSecsSinceEpoch();
+    connect(&sendTimer_, SIGNAL(timeout()), this, SLOT(sendData()));
+    sendTimer_.start(sendingInterval_ * 1000);
 }
 
 void FlurryAgent::endSession()
-{}
-
-void FlurryAgent::pauseSession()
-{}
+{
+    sendTimer_.stop();
+    sendData();
+    sessionStartTime_ = 0;
+}
 
 void FlurryAgent::setUserId(QString userId)
-{}
+{
+    userIdHash_ = userId;
+}
 
 void FlurryAgent::setLocation(float latitude, float longitude, float accuracy)
 {}
@@ -106,8 +112,11 @@ void FlurryAgent::logError(QString errorName, QString errorMessage, int lineNumb
 void FlurryAgent::setSessionContinueSeconds(int seconds)
 {}
 
-void FlurryAgent::sendData(QString postData)
+void FlurryAgent::sendData()
 {
+    QJsonDocument doc(formData());
+    QString postData = doc.toJson(QJsonDocument::Compact);
+
     QNetworkRequest sendDataRequest;
 //    core::http_request_simple post_request(_user_proxy, utils::get_user_agent(), stop_handler);
 //    post_request.set_connect_timeout(1000);
@@ -126,6 +135,7 @@ void FlurryAgent::sendData(QString postData)
     postDataReply->connect(postDataReply, &QNetworkReply::finished, [this, postDataReply]
     {
         clearData();
+        qDebug() << "[FlurryAgent] " << "data has been sent successfully";
         postDataReply->deleteLater();
     });
 }
@@ -150,8 +160,7 @@ QJsonObject FlurryAgent::formData()
     flurryBaseData.insert("ag", sessionStartTime_);
     flurryBaseData.insert("ah", time1);
     flurryBaseData.insert("ak", 1);
-    //TODO generate some unique user key
-    flurryBaseData.insert("cg", "user_key");
+    flurryBaseData.insert("cg", userIdHash_);
 
     QJsonArray eventsData;
     QJsonObject eventsDataObject;

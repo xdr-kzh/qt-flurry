@@ -9,11 +9,13 @@ int main(int argc, char *argv[])
 {
     QCoreApplication app(argc, argv);
     FlurryAgent fa;
-    fa.startSession("IAMGOINGIN");
+    fa.startSession("YOUR_API_KEY");
 
-    QJsonDocument doc(fa.formData());
-
-    qDebug() << doc.toJson(QJsonDocument::Compact);
+    std::locale loc("");
+    QMap<QString, QString> props;
+    props.insert(QString::fromStdString("Sys_Language"), QString::fromStdString(loc.name()));
+    fa.logEvent("StartSession", props);
+    fa.endSession();
 
     return app.exec();
 }

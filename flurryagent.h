@@ -5,8 +5,9 @@
 #include <QMap>
 #include <QList>
 #include <QNetworkAccessManager>
+#include <QTimer>
 
-class FlurryAgent
+class FlurryAgent : public QObject
 {
     const static QString FLURRY_BASE_URL;
     static qint64 CURRENT_EVENT_ID;
@@ -35,7 +36,6 @@ public:
 
     void startSession(QString apiKey);
     void endSession();
-    void pauseSession();
 
     void setUserId(QString userId);
     void setLocation(float latitude, float longitude, float accuracy);
@@ -52,19 +52,25 @@ public:
 
     QJsonObject formData();
 
+private slots:
+    void sendData();
+
 private:
-    void sendData(QString postData);
     void clearData();
 
     QJsonObject formEvent(const FlurryAgent::FlurryEvent& event, qint64 sessionStartTime);
 
 private:
-    QString apiKey_;
+    QString apiKey_;    
+    QString userIdHash_;
     QString appVersion_;
-    QNetworkAccessManager networkManager_;
-    QList<FlurryEvent> events_;
     qint64 sessionStartTime_;
     uint sendingInterval_;
+
+    QList<FlurryEvent> events_;
+
+    QNetworkAccessManager networkManager_;
+    QTimer sendTimer_;
 };
 
 #endif // FLURRYAGENT_H
