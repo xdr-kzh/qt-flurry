@@ -6,4 +6,5 @@ SOURCES += $$PWD/flurryagent.cpp
 DISTFILES += \
     $$PWD/flurry.js \
     $$PWD/statistics.cpp \
-    $$PWD/statistics.h
+    $$PWD/statistics.h \
+    $$PWD/main.html

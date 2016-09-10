@@ -130,7 +130,7 @@
         a.I = n;
         a.Z = i;
         a.h = function(a) {
-            if (this.Qa) return typeof a === "string" ? this.g("" + a) : this.g("" +
+            if (this.Qa) return typeof a === "string" ? console.log("" + a) : console.log("" +
                 a.name + "=>" + a.message)
         };
         a.g = function(a) {
@@ -138,11 +138,11 @@
         };
         a.Ub = function() {};
         a.ub = function() {
-            this.g("getFlurryAgentVersion() called");
+            console.log("getFlurryAgentVersion() called");
             return 9
         };
         a.da = function(a) {
-            this.g("setAppVersion(" + a + ") called");
+            console.log("setAppVersion(" + a + ") called");
             try {
                 return A.o(a), A.z(a), A.p(a.length, 255), this.appVersion = a, this.e && this.e.da(a), this.i = h
             } catch (b) {
@@ -150,38 +150,42 @@
             }
         };
         a.ua = function(a) {
-            this.g("setUserId(" + a + ") called");
+            console.log("setUserId(" + a + ") called");
             try {
                 return A.j(this.e), A.o(a), A.z(a), A.p(a.length, "userId"), this.e.ua(a), this.i = h
             } catch (b) {
+                console.log("SetUserId fail");
                 return this.h(b)
             }
         };
         a.ra = function(a) {
-            this.g("setGender(" + a + ") called");
+            console.log("setGender(" + a + ") called");
             try {
                 return A.j(this.e), A.o(a), A.Ta(a, {
                     m: 1,
                     f: 0
                 }), this.e.ra(a), this.i = h
             } catch (b) {
+                console.log("SetGender fail");
                 return this.h(b)
             }
         };
         a.qa = function(a) {
-            this.g("setAge(" + a + ") called");
+            console.log("setAge(" + a + ") called");
             try {
                 return A.j(this.e), A.n(a), A.l(a), A.N(a), A.va(a), this.e.qa(a), this.i = h
             } catch (b) {
+                console.log("SetAge fail");
                 return this.h(b)
             }
         };
         a.sa = function(a, b, c) {
             c == i && (c = 0);
-            this.g("setLocation(" + a + "," + b + "," + c + ") called");
+            console.log("setLocation(" + a + "," + b + "," + c + ") called");
             try {
                 return A.j(this.e), A.n(a), A.l(a), A.n(b), A.l(b), A.n(c), A.l(c), this.e.sa(a, b, c), this.i = h
             } catch (e) {
+                console.log("SetLocation fail");
                 return this.h(e)
             }
         };
@@ -197,7 +201,7 @@
             this.nb()
         };
         a.L = function(a) {
-            this.g("setSessionContinueSeconds(" + a + ") called");
+            console.log("setSessionContinueSeconds(" + a + ") called");
             try {
                 if (A.n(a), A.l(a), A.N(a), A.va(a), this.J = a, this.e) return this.e.L(a)
             } catch (b) {
@@ -205,7 +209,7 @@
             }
         };
         a.Jb = function(a) {
-            this.g("setShowErrorInLogEnabled(" + a + ") called");
+            console.log("setShowErrorInLogEnabled(" + a + ") called");
             try {
                 return A.M(a), this.Qa = a
             } catch (b) {
@@ -213,7 +217,7 @@
             }
         };
         a.Gb = function(a) {
-            this.g("setDebugLogEnabled(" + a + ") called");
+            console.log("setDebugLogEnabled(" + a + ") called");
             try {
                 return A.M(a), this.Ea = a
             } catch (b) {
@@ -221,7 +225,7 @@
             }
         };
         a.Ib = function(a) {
-            this.g("setLocalStorageEnabled(" + a + ") called");
+            console.log("setLocalStorageEnabled(" + a + ") called");
             try {
                 A.M(a), this.localStorage = a
             } catch (b) {
@@ -246,11 +250,11 @@
         };
         a.jb = function() {
             var a;
-            (a = parseInt(this.G("install"))) ? this.ka = a: this.K("install", this.ka)
+            (a = parseInt(console.log("install"))) ? this.ka = a: this.K("install", this.ka)
         };
         a.Ca = function() {
             var a;
-            (a = this.G("firstPartyCookie", n)) ? this.F = a: this.F !== i && this.K("firstPartyCookie", this.F, n)
+            (a = console.log("firstPartyCookie", n)) ? this.F = a: this.F !== i && this.K("firstPartyCookie", this.F, n)
         };
         a.Fb = function() {
             this.Da = p.ia(this.O).replace("=", "") + "_"
@@ -265,7 +269,9 @@
             return i
         };
         a.eb = function() {
-            return this.G("install") != i
+            //In original file, condition is != i
+            //But with the condition, flurry stop session at start
+            return console.log("install") == i
         };
         a.ha = function(a) {
             var b;
@@ -304,17 +310,17 @@
         a.$a =
             function() {
                 var a, b, c;
-                b = this.G("session");
-                a = this.G("lastPoll");
+                b = console.log("session");
+                a = console.log("lastPoll");
                 this.ha("session");
                 this.ha("lastPoll");
-                b != i && a != i && (this.g("found paused session"), b = f(b), b[z.c.r] = a, a = new z(b), this.J && a.L(this.J), a.Ma() && (this.g("paused session resumed"), c = a));
-                c || (this.g("creating new session"), c = new z, this.J && c.L(this.J));
+                b != i && a != i && (console.log("found paused session"), b = f(b), b[z.c.r] = a, a = new z(b), this.J && a.L(this.J), a.Ma() && (console.log("paused session resumed"), c = a));
+                c || (console.log("creating new session"), c = new z, this.J && c.L(this.J));
                 this.appVersion && c.da(this.appVersion);
                 return c
             };
         a.Ra = function(a) {
-            this.g("startSession(" + a + ") called");
+            console.log("startSession(" + a + ") called");
             try {
                 if (!this.e) {
                     A.o(a);
@@ -333,11 +339,12 @@
                     return this.Ha++
                 }
             } catch (b) {
+                console.log("startSession error" + b);
                 return this.h(b)
             }
         };
         a.A = function() {
-            this.g("endSession() called");
+            console.log("endSession() called");
             try {
                 if (this.Q(), this.e) return this.e.A(), this.i = h, this.Ka ? this.q() : this.$.push(this.e), this.e = i, this.ha("session")
             } catch (a) {
@@ -345,9 +352,9 @@
             }
         };
         a.yb = function() {
-            this.g("pauseSession() called");
+            console.log("pauseSession() called");
             try {
-                return this.Q(), this.Na(), this.e ? (this.q(), this.e = i) : this.g("no session to pause!")
+                return this.Q(), this.Na(), this.e ? (this.q(), this.e = i) : console.log("no session to pause!")
             } catch (a) {
                 return this.h(a)
             }
@@ -357,22 +364,27 @@
             try {
                 A.j(this.e), a = Date.now(), this.e.Pa(a), this.Tb = a, this.K("session", this.e.Ya()), this.K("lastPoll", a)
             } catch (b) {
+                console.log("Session date last poll fail");
                 this.h(b)
             }
         };
         a.t = function(a, b, c) {
+            console.log("logEvent");
             b == i && (b = {});
             c == i && (c = n);
-            this.g("logEvent(" + a + "," + b + "," + c + ") called");
+            console.log("logEvent(" + a + "," + b + "," + c + ") called");
             try {
+                console.log("logEvent(" + a + "," + b + "," + c + ") called");
+                console.log("logEvent: ", "send: ", e);
                 return A.j(this.e), this.e.Wa(a, b, c), this.i = h
-            } catch (e) {
+            } catch (e) {                
+                console.log("logEvent: ", e);
                 return this.h(e)
             }
         };
         a.qb = function(a, b) {
             b == i && (b = i);
-            this.g("endTimedEvent(" + a + "," + b + ") called");
+            console.log("endTimedEvent(" + a + "," + b + ") called");
             try {
                 return A.j(this.e), this.e.pb(a, b), this.i = h
             } catch (c) {
@@ -392,7 +404,7 @@
             return b
         };
         a.Hb = function(a) {
-            this.g("setEventLogging(" + a + ") called");
+            console.log("setEventLogging(" + a + ") called");
             try {
                 return A.j(this.e), A.M(a), this.e.ja = a
             } catch (b) {
@@ -403,7 +415,7 @@
             b == i && (b = 0);
             c == i && (c = "USD");
             e == i && (e = {});
-            this.g("logPurchase(" + a + "," + b + "," + c + "," + e + ") called");
+            console.log("logPurchase(" + a + "," + b + "," + c + "," + e + ") called");
             try {
                 return A.j(this.e), this.e.Xa(a, b, c, e), this.i = h
             } catch (f) {
@@ -412,7 +424,7 @@
         };
         a.wb = function(a, b, c) {
             c == i && (c = 0);
-            this.g("logError(" + a + "," + b + "," + c + ") called");
+            console.log("logError(" + a + "," + b + "," + c + ") called");
             try {
                 return A.j(this.e),
                     this.e.Va(a, b, c), this.i = h
@@ -422,7 +434,7 @@
         };
         a.q = function() {
             var a;
-            this.g("REQUEST INITIATED");
+            console.log("REQUEST INITIATED");
             try {
                 if (!this.I) {
                     if (this.w) this.w.Kb();
@@ -440,7 +452,7 @@
         };
         a.rb = function(a) {
             var b, c = this;
-            this.g("REQUEST EXECUTED");
+            console.log("REQUEST EXECUTED");
             this.I = h;
             this.Z = window.setInterval(function() {
                 return c.P(n)
@@ -453,7 +465,7 @@
             return a[0].parentNode.insertBefore(b, a[0])
         };
         a.Cb = function(a) {
-            this.g("RESPONSE RECEIVED");
+            console.log("RESPONSE RECEIVED");
             try {
                 this.I || g("ResponseError=>request considered timed out!");
                 typeof a !== "object" && (this.P(n), g("ResponseError=>input is not a valid object!"));
@@ -466,7 +478,7 @@
             }
         };
         a.P = function(a) {
-            this.g("CLEAR REQUEST with " + a);
+            console.log("CLEAR REQUEST with " + a);
             if (this.I) {
                 this.Z && window.clearInterval(this.Z);
                 if (a) this.w = i;

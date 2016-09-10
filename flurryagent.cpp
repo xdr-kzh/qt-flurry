@@ -19,41 +19,6 @@ qint64 FlurryAgent::CURRENT_EVENT_ID = 0;
     const int FlurryAgent::DEFAULT_SENDING_INTERVAL = 60 * 60 * 1000; // 1 hour for release
 #endif // DEBUG
 
-//age: "age",
-//timestamp: "ba",
-//duration: "bb",
-//u: "bc",
-//appVersion: "bd",
-//Sa: "be",
-//location: "bf",
-//vb: "bj",
-//Ga: "bk",
-//ya: "bl",
-//Aa: "bm",
-//s: "bn",
-//D: "bo",
-//Ba: "bt",
-//v: "bu",
-//X: "bv",
-//S: "by",
-//Ia: "cd",
-//Lb: "ch"
-//eventLogging: "eventLogging",
-//eventCounter: "eventCounter",
-//errorCounter: "errorCounter"
-//numEventNames: "numEventNames",
-//numPurchaseNames: "numPurchaseNames",
-//numEventsLogged: "numEventsLogged",
-//numPurchasesLogged: "numPurchasesLogged",
-//numErrorsLogged: "numErrorsLogged",
-//timedEvents: "timedEvents",
-//totalEventNames: "totalEventNames",
-//totalPurchaseNames: "totalPurchaseNames",
-//purchaseCounter: "purchaseCounter",
-//sessionContinue: "sessionContinue",
-//pauseTimestamp: "pauseTimestamp",
-//requestsMade: "requestsMade",
-
 FlurryAgent::FlurryAgent()
 {
     appVersion_ = QCoreApplication::instance()->applicationVersion();
@@ -127,10 +92,6 @@ void FlurryAgent::sendData()
     QString postData = doc.toJson(QJsonDocument::Compact);
 
     QNetworkRequest sendDataRequest;
-//    core::http_request_simple post_request(_user_proxy, utils::get_user_agent(), stop_handler);
-//    post_request.set_connect_timeout(1000);
-//    post_request.set_timeout(1000);
-//    post_request.set_keep_alive();
 
     QUrlQuery urlQuery(FLURRY_BASE_URL);
     QByteArray base64Data;
