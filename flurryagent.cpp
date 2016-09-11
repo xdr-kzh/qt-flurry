@@ -121,8 +121,6 @@ void FlurryAgent::clearData()
 
 QJsonObject FlurryAgent::formData()
 {
-    //    auto version = core::utils::get_user_agent();
-
     auto time1 = sessionStartTime_ + 4;
     auto time3 = QDateTime::currentMSecsSinceEpoch();
     auto delta = time3 - sessionStartTime_;
@@ -189,15 +187,13 @@ QJsonObject FlurryAgent::formEventToJson(const FlurryEvent& event)
     jsonEvent.insert("bp", event.eventName());
     jsonEvent.insert("bq", event.deltaTime());
     jsonEvent.insert("bs", eventParameters);
-    //JESUS CHRIST, IS IT TIMED EVENT ?
-    //jsonEvent.insert("br", event.duration());
-    jsonEvent.insert("br", 0);
+    jsonEvent.insert("br", event.duration());
 
     return jsonEvent;
 }
 
 FlurryAgent::FlurryEvent::FlurryEvent(QString eventName, const QMap<QString, QString>& params, qint64 deltaTime):
-    eventName_(eventName), parameters_(params), deltaTime_(deltaTime), id_(CURRENT_EVENT_ID)
+    eventName_(eventName), parameters_(params), deltaTime_(deltaTime), duration_(0), id_(CURRENT_EVENT_ID)
 {}
 
 const QString& FlurryAgent::FlurryEvent::eventName() const

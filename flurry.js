@@ -375,7 +375,6 @@
             console.log("logEvent(" + a + "," + b + "," + c + ") called");
             try {
                 console.log("logEvent(" + a + "," + b + "," + c + ") called");
-                console.log("logEvent: ", "send: ", e);
                 return A.j(this.e), this.e.Wa(a, b, c), this.i = h
             } catch (e) {                
                 console.log("logEvent: ", e);

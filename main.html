@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <title>Bootstrap Example</title>
+  <title>Flurry JS test page</title>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
 	<script src="flurry.js"></script>
@@ -9,23 +9,36 @@
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
   <script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
 
-<script>FlurryAgent.startSession("YOUR_API_KEY");</script>
-<script>
-function flurrySend(){
+<script>FlurryAgent.startSession("YOUR_API_KEY");
 FlurryAgent.setUserId("ratamahatagmailcom");
 FlurryAgent.setAppVersion("1");
-console.log("Send to Flurry");
+</script>
+<script>
+function startEvent(){
+FlurryAgent.logEvent("environment", {}, true);//savetheOSandBrowser
+}
 
-FlurryAgent.logEvent("environment");//savetheOSandBrowser
+function endEvent(){
+FlurryAgent.endTimedEvent("environment");//savetheOSandBrowser
+}
+
+function stopSession(){
 FlurryAgent.endSession();
+}
+
+function trackSomeEvent(){
+FlurryAgent.logEvent("voip_call");
 }
 </script>
 </head>
 <body>
 
 <div class="container">
-  <h2>Button Styles</h2>
-  <button type="button" class="btn btn-default" onclick="flurrySend()">Default</button>
+  <h2>Flurry JS test page</h2>
+  <button type="button" class="btn btn-default" onclick="startEvent()">Start timed event</button>
+<button type="button" class="btn btn-default" onclick="trackSomeEvent()">Track another event</button>
+  <button type="button" class="btn btn-default" onclick="endEvent()">End timed event</button>
+  <button type="button" class="btn btn-default" onclick="stopSession()">End session</button>
 </div>
 </body>
 </html>
