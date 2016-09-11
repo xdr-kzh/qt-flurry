@@ -130,18 +130,21 @@ QJsonObject FlurryAgent::formData()
     QJsonObject flurryBaseData;
     flurryBaseData.insert("af", time3);
     flurryBaseData.insert("aa", 1);
+    flurryBaseData.insert("ab", 10);
+    flurryBaseData.insert("ac", 9);
+    flurryBaseData.insert("ae", appVersion_);
     flurryBaseData.insert("ad", apiKey_);
     flurryBaseData.insert("ag", sessionStartTime_);
     flurryBaseData.insert("ah", time1);
-    flurryBaseData.insert("ak", 1);
     flurryBaseData.insert("cg", userIdHash_);
+    flurryBaseData.insert("ak", 1);
 
     QJsonArray eventsData;
     QJsonObject eventsDataObject;
-    //TODO It is an app version?
-    eventsDataObject.insert("bd", appVersion_);
+    eventsDataObject.insert("bd", "");
     eventsDataObject.insert("be", "");
     eventsDataObject.insert("bk", -1);
+    eventsDataObject.insert("bl", 0);
     eventsDataObject.insert("bj", "ru");
 
     QJsonArray events;
@@ -150,10 +153,17 @@ QJsonObject FlurryAgent::formData()
     }
     eventsDataObject.insert("bo", events);
 
+    eventsDataObject.insert("bm", false);
+    //TODO
+    //std::map<int, int> events_and_count;
+    //like
+    //{"1": 1, "2": 2}
+    eventsDataObject.insert("bn", QJsonObject());
     eventsDataObject.insert("bv", QJsonArray());
     eventsDataObject.insert("bt", false);
     eventsDataObject.insert("bu", QJsonObject());
     eventsDataObject.insert("by", QJsonArray());
+    eventsDataObject.insert("cd", 0);
     eventsDataObject.insert("ba", time1);
     eventsDataObject.insert("bb", delta);
     eventsDataObject.insert("bc", -1);

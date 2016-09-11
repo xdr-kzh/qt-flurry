@@ -461,6 +461,9 @@
             b.type = "text/javascript";
             b.async = h;
             b.src = encodeURI(x.Fa + "?d=" + p.ia(a) + "&c=" + q.bb(a));
+
+            console.log("Object query parameter before: ", a);
+
             a = document.getElementsByTagName("script");
             return a[0].parentNode.insertBefore(b, a[0])
         };
