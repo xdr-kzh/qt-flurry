@@ -13,13 +13,14 @@
 
 const QString FlurryAgent::FLURRY_BASE_URL = QString::fromUtf8("https://data.flurry.com/aah.do");
 qint64 FlurryAgent::CURRENT_EVENT_ID = 0;
+qint64 FlurryAgent::CURRENT_ERROR_ID = 0;
 #ifdef DEBUG
     const int FlurryAgent::DEFAULT_SENDING_INTERVAL = 20 * 1 * 1000; // 20 seconds for debug
 #else
     const int FlurryAgent::DEFAULT_SENDING_INTERVAL = 60 * 60 * 1000; // 1 hour for release
 #endif // DEBUG
 
-FlurryAgent::FlurryAgent()
+FlurryAgent::FlurryAgent() : latitude_(0.0), longitude_(0.0), locationAccuracy_(0.0)
 {
     appVersion_ = QCoreApplication::instance()->applicationVersion();
     sendingInterval_ = DEFAULT_SENDING_INTERVAL;
@@ -45,13 +46,17 @@ void FlurryAgent::setUserId(QString userId)
     userIdHash_ = userId;
 }
 
-void FlurryAgent::setLocation(float latitude, float longitude, float accuracy)
-{}
+void FlurryAgent::setLocation(double latitude, double longitude, float accuracy)
+{
+    latitude_ = latitude;
+    longitude_ = longitude;
+    locationAccuracy_ = accuracy;
+}
 
 void FlurryAgent::logEvent(QString eventName, QMap<QString, QString> parameters, bool timedEvent)
 {
-    CURRENT_EVENT_ID++;
-    FlurryEvent event(eventName, parameters, QDateTime::currentMSecsSinceEpoch() - sessionStartTime_);
+    ++CURRENT_EVENT_ID;
+    FlurryEvent event(eventName, parameters, QDateTime::currentMSecsSinceEpoch() - sessionStartTime_, timedEvent);
     events_.push_back(event);
 }
 
@@ -83,10 +88,11 @@ void FlurryAgent::setAppVersion(QString appVersion)
 }
 
 void FlurryAgent::logError(QString errorName, QString errorMessage, int lineNumber)
-{}
-
-void FlurryAgent::setSessionContinueSeconds(int seconds)
-{}
+{
+    ++CURRENT_ERROR_ID;
+    ErrorEvent event(errorName, errorMessage, lineNumber, QDateTime::currentMSecsSinceEpoch());
+    errorEvents_.push_back(event);
+}
 
 void FlurryAgent::sendData()
 {
@@ -145,14 +151,25 @@ QJsonObject FlurryAgent::formData()
     eventsDataObject.insert("be", "");
     eventsDataObject.insert("bk", -1);
     eventsDataObject.insert("bl", 0);
+    if(longitude_ != 0.0 && latitude_ != 0.0)
+    {
+        QJsonObject locationData;
+        locationData.insert("bg", latitude_);
+        locationData.insert("bh", longitude_);
+        locationData.insert("bi", locationAccuracy_);
+        eventsDataObject.insert("bf", locationData);
+    }
     eventsDataObject.insert("bj", "ru");
 
     QJsonArray events;
     QMap<QString, int> eventsAndCounts;
-    foreach (FlurryEvent event, events_) {
-        events.append(formEventToJson(event));
-
-        ++eventsAndCounts[event.eventName()];
+    foreach (FlurryEvent event, events_)
+    {
+        if(event.isReadyToSend())
+        {
+            events.push_back(formEventToJson(event));
+            ++eventsAndCounts[event.eventName()];
+        }
     }
     eventsDataObject.insert("bo", events);
 
@@ -167,7 +184,14 @@ QJsonObject FlurryAgent::formData()
     eventsDataObject.insert("bv", QJsonArray());
     eventsDataObject.insert("bt", false);
     eventsDataObject.insert("bu", QJsonObject());
-    eventsDataObject.insert("by", QJsonArray());
+
+    QJsonArray errorDataArray;
+    foreach(ErrorEvent error, errorEvents_)
+    {
+        errorDataArray.push_back(formErrorToJson(error));
+    }
+
+    eventsDataObject.insert("by", errorDataArray);
     eventsDataObject.insert("cd", 0);
     eventsDataObject.insert("ba", time1);
     eventsDataObject.insert("bb", delta);
@@ -199,12 +223,24 @@ QJsonObject FlurryAgent::formEventToJson(const FlurryEvent& event)
     return jsonEvent;
 }
 
+QJsonObject FlurryAgent::formErrorToJson(const ErrorEvent& error)
+{
+    QJsonObject jsonEvent;
+    jsonEvent.insert("cf", CURRENT_ERROR_ID);
+    jsonEvent.insert("bz", error.errorName());
+    jsonEvent.insert("ca", error.errorDesc());
+    jsonEvent.insert("cb", QString::number(error.lineNumber()));
+    jsonEvent.insert("cc", error.timestamp());
+
+    return jsonEvent;
+}
+
 FlurryAgent::FlurryEvent::FlurryEvent(QString eventName, const QMap<QString, QString>& params, qint64 deltaTime, bool isTimed):
     eventName_(eventName), parameters_(params), deltaTime_(deltaTime), duration_(0), id_(CURRENT_EVENT_ID),
     isTimed_(isTimed), isReadyToSend_(!isTimed)
 {}
 
-const QString& FlurryAgent::FlurryEvent::eventName() const
+QString FlurryAgent::FlurryEvent::eventName() const
 {
     return eventName_;
 }
@@ -231,7 +267,7 @@ qint64 FlurryAgent::FlurryEvent::duration() const
 
 void FlurryAgent::FlurryEvent::setDuration(const qint64 &duration)
 {
-    if(isTimed)
+    if(isTimed_)
     {
         duration_ = duration;
         isReadyToSend_ = true;
@@ -243,7 +279,38 @@ void FlurryAgent::FlurryEvent::setParameters(const QMap<QString, QString> &param
     parameters_ = parameters;
 }
 
-bool FlurryEvent::isReadyToSend() const
+bool FlurryAgent::FlurryEvent::isReadyToSend() const
 {
     return isReadyToSend_;
 }
+
+FlurryAgent::ErrorEvent::ErrorEvent(QString errorName, QString errorDesc, int lineNumber, qint64 timestamp):
+    errorName_(errorName), errorDesc_(errorDesc), lineNumber_(lineNumber),
+    timestamp_(timestamp), id_(CURRENT_ERROR_ID)
+{}
+
+QString FlurryAgent::ErrorEvent::errorName() const
+{
+    return errorName_;
+}
+
+QString FlurryAgent::ErrorEvent::errorDesc() const
+{
+    return errorDesc_;
+}
+
+qint64 FlurryAgent::ErrorEvent::timestamp() const
+{
+    return timestamp_;
+}
+
+qint64 FlurryAgent::ErrorEvent::id() const
+{
+    return id_;
+}
+
+int FlurryAgent::ErrorEvent::lineNumber() const
+{
+    return lineNumber_;
+}
+

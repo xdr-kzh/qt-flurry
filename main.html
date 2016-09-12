@@ -9,11 +9,13 @@
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
   <script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
 
-<script>FlurryAgent.startSession("YOUR_API_KEY");
+<script>
+function startSession(){
 FlurryAgent.setUserId("ratamahatagmailcom");
 FlurryAgent.setAppVersion("1");
-</script>
-<script>
+FlurryAgent.startSession("YOUR_API_KEY");
+}
+
 function startEvent(){
 FlurryAgent.logEvent("environment", {}, true);//savetheOSandBrowser
 }
@@ -29,14 +31,25 @@ FlurryAgent.endSession();
 function trackSomeEvent(){
 FlurryAgent.logEvent("voip_call");
 }
+
+function trackCustomError(){
+FlurryAgent.logError("Vk Error", "API Return wrong answer", 127);
+}
+
+function setLocation(){
+FlurryAgent.setLocation(53.2007, 45.0046, 0);
+}
 </script>
 </head>
 <body>
 
 <div class="container">
   <h2>Flurry JS test page</h2>
+  <button type="button" class="btn btn-default" onclick="startSession()">Start session</button>
+  <button type="button" class="btn btn-default" onclick="setLocation()">Set location</button>
   <button type="button" class="btn btn-default" onclick="startEvent()">Start timed event</button>
-<button type="button" class="btn btn-default" onclick="trackSomeEvent()">Track another event</button>
+  <button type="button" class="btn btn-default" onclick="trackSomeEvent()">Track another event</button>
+  <button type="button" class="btn btn-default" onclick="trackCustomError()">Track error</button>
   <button type="button" class="btn btn-default" onclick="endEvent()">End timed event</button>
   <button type="button" class="btn btn-default" onclick="stopSession()">End session</button>
 </div>

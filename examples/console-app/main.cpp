@@ -12,6 +12,7 @@ int main(int argc, char *argv[])
     FlurryAgent fa;
     fa.setUserId("porracaralho");
     fa.setAppVersion(QString::number(2));
+    fa.setLocation(53.2007, 45.0046, 0);
     fa.startSession("YOUR_API_KEY");
 
     QMap<QString, QString> props;
@@ -26,6 +27,8 @@ int main(int argc, char *argv[])
     fa.logEvent("system", props);
     sleep(1);
     fa.logEvent("system", props);
+    sleep(1);
+    fa.logError(QString::fromStdString("ApiError"), QString::fromStdString("Can't parse the data"), 127);
 
     fa.endSession();
 

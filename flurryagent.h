@@ -11,6 +11,7 @@ class FlurryAgent : public QObject
 {
     const static QString FLURRY_BASE_URL;
     static qint64 CURRENT_EVENT_ID;
+    static qint64 CURRENT_ERROR_ID;
     const static int DEFAULT_SENDING_INTERVAL;
 
 private:
@@ -19,7 +20,7 @@ private:
     public:
         FlurryEvent(QString eventName, const QMap<QString, QString>& params, qint64 deltaTime, bool isTimed = false);
 
-        const QString& eventName() const;
+        QString eventName() const;
         const QMap<QString, QString>& parameters() const;
         qint64 deltaTime() const;
         qint64 id() const;
@@ -41,6 +42,27 @@ private:
         bool isReadyToSend_;
     };
 
+    class ErrorEvent
+    {
+    public:
+        ErrorEvent(QString errorName, QString desc, int lineNumber, qint64 timestamp);
+
+        QString errorName() const;
+        QString errorDesc() const;
+
+        qint64 timestamp() const;
+        qint64 id() const;
+
+        int lineNumber() const;
+
+    private:
+        QString errorName_;
+        QString errorDesc_;
+        int lineNumber_;
+        qint64 timestamp_;
+        qint64 id_;
+    };
+
 public:
     FlurryAgent();
 
@@ -48,27 +70,25 @@ public:
     void endSession();
 
     void setUserId(QString userId);
-    void setLocation(float latitude, float longitude, float accuracy);
-
-    void logEvent(QString eventName, QMap<QString, QString> parameters = QMap<QString, QString>(), bool timedEvent = false);
-    void endTimedEvent(QString eventName, QMap<QString, QString> parameters = QMap<QString, QString>());
-
-    void setRequestInterval(int timeInSeconds);
+    void setLocation(double latitude, double longitude, float accuracy);
     void setAppVersion(QString appVersion);
 
+    void setRequestInterval(int timeInSeconds);
+
+    void logEvent(QString eventName, QMap<QString, QString> parameters = QMap<QString, QString>(), bool timedEvent = false);
     void logError(QString errorName, QString errorMessage, int lineNumber);
-
-    void setSessionContinueSeconds(int seconds);
-
-    QJsonObject formData();
+    void endTimedEvent(QString eventName, QMap<QString, QString> parameters = QMap<QString, QString>());
 
 private slots:
     void sendData();
 
 private:
+    FlurryAgent(const FlurryAgent&) = delete;
+    QJsonObject formData();
     void clearData();
 
-    QJsonObject formEventToJson(const FlurryAgent::FlurryEvent& event);
+    QJsonObject formEventToJson(const FlurryEvent& event);
+    QJsonObject formErrorToJson(const ErrorEvent& error);
 
 private:
     QString apiKey_;    
@@ -79,8 +99,14 @@ private:
 
     QList<FlurryEvent> events_;
 
+    QList<ErrorEvent> errorEvents_;
+
     QNetworkAccessManager networkManager_;
     QTimer sendTimer_;
+
+    double latitude_;
+    double longitude_;
+    float locationAccuracy_;
 };
 
 #endif // FLURRYAGENT_H
