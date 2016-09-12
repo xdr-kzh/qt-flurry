@@ -125,6 +125,7 @@ void FlurryAgent::sendData()
 void FlurryAgent::clearData()
 {
     events_.clear();
+    errorEvents_.clear();
 }
 
 QJsonObject FlurryAgent::formData()
