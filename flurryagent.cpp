@@ -58,8 +58,10 @@ void FlurryAgent::logEvent(QString eventName, QMap<QString, QString> parameters,
 void FlurryAgent::endTimedEvent(QString eventName, QMap<QString, QString> parameters)
 {
     qint64 endTime = QDateTime::currentMSecsSinceEpoch() - sessionStartTime_;
-    foreach(FlurryEvent event, events_){
-        if(event.eventName() == eventName){
+    foreach(FlurryEvent event, events_)
+    {
+        if(event.eventName() == eventName)
+        {
             if(!parameters.isEmpty())
             {
                 event.setParameters(parameters);
@@ -146,17 +148,22 @@ QJsonObject FlurryAgent::formData()
     eventsDataObject.insert("bj", "ru");
 
     QJsonArray events;
+    QMap<QString, int> eventsAndCounts;
     foreach (FlurryEvent event, events_) {
         events.append(formEventToJson(event));
+
+        ++eventsAndCounts[event.eventName()];
     }
     eventsDataObject.insert("bo", events);
 
     eventsDataObject.insert("bm", false);
-    //TODO
-    //std::map<int, int> events_and_count;
-    //like
-    //{"1": 1, "2": 2}
-    eventsDataObject.insert("bn", QJsonObject());
+
+    QJsonObject uniqueEventCount;
+    foreach (QString key, eventsAndCounts.keys()) {
+        uniqueEventCount.insert(key, eventsAndCounts[key]);
+    }
+    eventsDataObject.insert("bn", uniqueEventCount);
+
     eventsDataObject.insert("bv", QJsonArray());
     eventsDataObject.insert("bt", false);
     eventsDataObject.insert("bu", QJsonObject());
@@ -192,8 +199,9 @@ QJsonObject FlurryAgent::formEventToJson(const FlurryEvent& event)
     return jsonEvent;
 }
 
-FlurryAgent::FlurryEvent::FlurryEvent(QString eventName, const QMap<QString, QString>& params, qint64 deltaTime):
-    eventName_(eventName), parameters_(params), deltaTime_(deltaTime), duration_(0), id_(CURRENT_EVENT_ID)
+FlurryAgent::FlurryEvent::FlurryEvent(QString eventName, const QMap<QString, QString>& params, qint64 deltaTime, bool isTimed):
+    eventName_(eventName), parameters_(params), deltaTime_(deltaTime), duration_(0), id_(CURRENT_EVENT_ID),
+    isTimed_(isTimed), isReadyToSend_(!isTimed)
 {}
 
 const QString& FlurryAgent::FlurryEvent::eventName() const
@@ -223,10 +231,19 @@ qint64 FlurryAgent::FlurryEvent::duration() const
 
 void FlurryAgent::FlurryEvent::setDuration(const qint64 &duration)
 {
-    duration_ = duration;
+    if(isTimed)
+    {
+        duration_ = duration;
+        isReadyToSend_ = true;
+    }
 }
 
 void FlurryAgent::FlurryEvent::setParameters(const QMap<QString, QString> &parameters)
 {
     parameters_ = parameters;
+}
+
+bool FlurryEvent::isReadyToSend() const
+{
+    return isReadyToSend_;
 }

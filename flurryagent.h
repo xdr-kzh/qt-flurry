@@ -17,7 +17,7 @@ private:
     class FlurryEvent
     {
     public:
-        FlurryEvent(QString eventName, const QMap<QString, QString>& params, qint64 deltaTime);
+        FlurryEvent(QString eventName, const QMap<QString, QString>& params, qint64 deltaTime, bool isTimed = false);
 
         const QString& eventName() const;
         const QMap<QString, QString>& parameters() const;
@@ -29,12 +29,16 @@ private:
 
         void setParameters(const QMap<QString, QString> &parameters);
 
+        bool isReadyToSend() const;
+
     private:
         QString eventName_;
         QMap<QString, QString> parameters_;
         qint64 deltaTime_;
         qint64 duration_;
         qint64 id_;
+        bool isTimed_;
+        bool isReadyToSend_;
     };
 
 public:

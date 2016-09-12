@@ -25,6 +25,7 @@ int main(int argc, char *argv[])
     props.insert(QString::fromStdString("cores"), QString::fromStdString("4"));
     fa.logEvent("system", props);
     sleep(1);
+    fa.logEvent("system", props);
 
     fa.endSession();
 
