@@ -79,16 +79,20 @@ public:
     void logError(QString errorName, QString errorMessage, int lineNumber);
     void endTimedEvent(QString eventName, QMap<QString, QString> parameters = QMap<QString, QString>());
 
+    void setSessionContinueSeconds(int seconds);
+
+    QString formData();
+
 private slots:
     void sendData();
 
 private:
     FlurryAgent(const FlurryAgent&) = delete;
-    QJsonObject formData();
+//    QString formData();
     void clearData();
 
-    QJsonObject formEventToJson(const FlurryEvent& event);
-    QJsonObject formErrorToJson(const ErrorEvent& error);
+    QString formErrorToJson(const ErrorEvent& error);
+    QString formEventToJson(const FlurryAgent::FlurryEvent& event);
 
 private:
     QString apiKey_;    

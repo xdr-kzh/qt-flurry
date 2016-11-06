@@ -1,9 +1,6 @@
 #include "flurryagent.h"
 
 #include <QCoreApplication>
-#include <QJsonArray>
-#include <QJsonDocument>
-#include <QJsonObject>
 #include <QNetworkAccessManager>
 #include <QNetworkRequest>
 #include <QNetworkReply>
@@ -96,8 +93,7 @@ void FlurryAgent::logError(QString errorName, QString errorMessage, int lineNumb
 
 void FlurryAgent::sendData()
 {
-    QJsonDocument doc(formData());
-    QString postData = doc.toJson(QJsonDocument::Compact);
+    const QString& postData = formData();
 
     QNetworkRequest sendDataRequest;
 
@@ -128,112 +124,121 @@ void FlurryAgent::clearData()
     errorEvents_.clear();
 }
 
-QJsonObject FlurryAgent::formData()
+QString FlurryAgent::formData()
 {
     auto time1 = sessionStartTime_ + 4;
     auto time3 = QDateTime::currentMSecsSinceEpoch();
     auto delta = time3 - sessionStartTime_;
 
-    QJsonObject flurryBaseData;
-    flurryBaseData.insert("af", time3);
-    flurryBaseData.insert("aa", 1);
-    flurryBaseData.insert("ab", 10);
-    flurryBaseData.insert("ac", 9);
-    flurryBaseData.insert("ae", appVersion_);
-    flurryBaseData.insert("ad", apiKey_);
-    flurryBaseData.insert("ag", sessionStartTime_);
-    flurryBaseData.insert("ah", time1);
-    flurryBaseData.insert("cg", userIdHash_);
-    flurryBaseData.insert("ak", 1);
+    QString baseData;
+    QTextStream stream(&baseData);
+    stream << "{\"a\":{\"af\":" << time3
+         <<",\"aa\":1,\"ab\":10,\"ac\":9,\"ae\":\""<< appVersion_
+         << "\",\"ad\":\"" << apiKey_
+         << "\",\"ag\":" << sessionStartTime_
+         << ",\"ah\":" << time1
+         << ",\"ak\":1,"
+         << "\"cg\":\"" << userIdHash_
+         << "\"},\"b\":[{\"bd\":\"\",\"be\":\"\",\"bk\":-1,\"bl\":0,";
 
-    QJsonArray eventsData;
-    QJsonObject eventsDataObject;
-    eventsDataObject.insert("bd", "");
-    eventsDataObject.insert("be", "");
-    eventsDataObject.insert("bk", -1);
-    eventsDataObject.insert("bl", 0);
     if(longitude_ != 0.0 && latitude_ != 0.0)
     {
-        QJsonObject locationData;
-        locationData.insert("bg", latitude_);
-        locationData.insert("bh", longitude_);
-        locationData.insert("bi", locationAccuracy_);
-        eventsDataObject.insert("bf", locationData);
+        stream << "\"bf\":{\"bg\":" << latitude_
+               << "\",\"bh\":" << longitude_
+               << "\",\"bi\":" << locationAccuracy_
+               << "\"},";
     }
-    eventsDataObject.insert("bj", "ru");
 
-    QJsonArray events;
+    stream << "\"bj\":\"ru\",\"bo\":[";
+
     QMap<QString, int> eventsAndCounts;
-    foreach (FlurryEvent event, events_)
+
+    auto it = events_.begin();
+    while(it != events_.end())
     {
-        if(event.isReadyToSend())
+        if(it->isReadyToSend())
         {
-            events.push_back(formEventToJson(event));
-            ++eventsAndCounts[event.eventName()];
+            ++eventsAndCounts[it->eventName()];
+            if(it != events_.begin())
+            {
+                stream << ",";
+            }
+            stream << formEventToJson(*it);
         }
+        ++it;
     }
-    eventsDataObject.insert("bo", events);
 
-    eventsDataObject.insert("bm", false);
+    stream << "],\"bm\":false,\"bn\":{";
 
-    QJsonObject uniqueEventCount;
-    foreach (QString key, eventsAndCounts.keys()) {
-        uniqueEventCount.insert(key, eventsAndCounts[key]);
-    }
-    eventsDataObject.insert("bn", uniqueEventCount);
-
-    eventsDataObject.insert("bv", QJsonArray());
-    eventsDataObject.insert("bt", false);
-    eventsDataObject.insert("bu", QJsonObject());
-
-    QJsonArray errorDataArray;
-    foreach(ErrorEvent error, errorEvents_)
+    stream << "\"\",";
+    QMap<QString, int>::ConstIterator stat_event = eventsAndCounts.begin();
+    while(stat_event != eventsAndCounts.end())
     {
-        errorDataArray.push_back(formErrorToJson(error));
+        if (stat_event != eventsAndCounts.begin())
+        {
+            stream << ",";
+        }
+        stream << "\"" << (*stat_event) << "\":" << stat_event.key();
+        ++stat_event;
     }
 
-    eventsDataObject.insert("by", errorDataArray);
-    eventsDataObject.insert("cd", 0);
-    eventsDataObject.insert("ba", time1);
-    eventsDataObject.insert("bb", delta);
-    eventsDataObject.insert("bc", -1);
-    eventsDataObject.insert("ch", "Etc/GMT-3");
+    stream << "}"
+        <<",\"bv\":[],\"bt\":false,\"bu\":{},\"by\":[";
 
-    eventsData.append(eventsDataObject);
-
-    QJsonObject data;
-    data.insert("a", flurryBaseData);
-    data.insert("b", eventsData);
-    return data;
-}
-
-QJsonObject FlurryAgent::formEventToJson(const FlurryEvent& event)
-{
-    QJsonObject eventParameters;
-    foreach(QString key, event.parameters().keys()){
-        eventParameters.insert(key, event.parameters().value(key));
+    auto error = errorEvents_.begin();
+    while(error != errorEvents_.end())
+    {
+        if(error != errorEvents_.begin())
+        {
+            stream << ",";
+        }
+        stream << formErrorToJson(*error);
+        ++error;
     }
 
-    QJsonObject jsonEvent;
-    jsonEvent.insert("ce", CURRENT_EVENT_ID);
-    jsonEvent.insert("bp", event.eventName());
-    jsonEvent.insert("bq", event.deltaTime());
-    jsonEvent.insert("bs", eventParameters);
-    jsonEvent.insert("br", event.duration());
+    stream <<  "],\"cd\":0,"
+        << "\"ba\":" << time1
+        << ",\"bb\":" << delta
+        << ",\"bc\":-1,\"ch\":\"Etc/GMT-3\"}]}";
 
-    return jsonEvent;
+    return baseData;
 }
 
-QJsonObject FlurryAgent::formErrorToJson(const ErrorEvent& error)
+QString FlurryAgent::formEventToJson(const FlurryEvent& event)
 {
-    QJsonObject jsonEvent;
-    jsonEvent.insert("cf", CURRENT_ERROR_ID);
-    jsonEvent.insert("bz", error.errorName());
-    jsonEvent.insert("ca", error.errorDesc());
-    jsonEvent.insert("cb", QString::number(error.lineNumber()));
-    jsonEvent.insert("cc", error.timestamp());
+    QString eventData;
+    QTextStream stream(&eventData);
+    QMap<QString, QString>::ConstIterator it = event.parameters().begin();
+    while(it != event.parameters().end())
+    {
+        if(it != event.parameters().begin())
+        {
+            stream << ",";
+        }
+        stream << "\"" << *it << "\":\"" << event.parameters().value(*it) << "\"";
+    }
 
-    return jsonEvent;
+    stream << "{\"ce\":" << CURRENT_EVENT_ID
+            << ",\"bp\":\"" << event.eventName()
+            << "\",\"bq\":" << event.deltaTime()
+            << ",\"bs\":{" << eventData <<"},"
+            << "\"br\":" << event.duration() << "}";
+
+    return eventData;
+}
+
+QString FlurryAgent::formErrorToJson(const ErrorEvent& error)
+{
+    QString errorData;
+    QTextStream stream(&errorData);
+
+    stream << "{\"cf\":" << CURRENT_ERROR_ID
+            << ",\"bz\":\"" << error.errorName()
+            << "\",\"ca\":" << error.errorDesc()
+            << "\",\"cb\":" << error.lineNumber()
+            << ",\"cc\":" << error.timestamp() << "}";
+
+    return errorData;
 }
 
 FlurryAgent::FlurryEvent::FlurryEvent(QString eventName, const QMap<QString, QString>& params, qint64 deltaTime, bool isTimed):

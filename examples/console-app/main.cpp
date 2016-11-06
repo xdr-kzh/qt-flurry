@@ -13,7 +13,7 @@ int main(int argc, char *argv[])
     fa.setUserId("porracaralho");
     fa.setAppVersion(QString::number(2));
     fa.setLocation(53.2007, 45.0046, 0);
-    fa.startSession("YOUR_API_KEY");
+    fa.startSession("TTCCY6W2DG9KRMGRVVJH");
 
     QMap<QString, QString> props;
     props.insert(QString::fromStdString("os"), QString::fromStdString("MacOSX"));
