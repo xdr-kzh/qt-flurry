@@ -144,9 +144,9 @@ QString FlurryAgent::formData()
     if(longitude_ != 0.0 && latitude_ != 0.0)
     {
         stream << "\"bf\":{\"bg\":" << latitude_
-               << "\",\"bh\":" << longitude_
-               << "\",\"bi\":" << locationAccuracy_
-               << "\"},";
+               << ",\"bh\":" << longitude_
+               << ",\"bi\":" << locationAccuracy_
+               << "},";
     }
 
     stream << "\"bj\":\"ru\",\"bo\":[";
@@ -170,16 +170,15 @@ QString FlurryAgent::formData()
 
     stream << "],\"bm\":false,\"bn\":{";
 
-    stream << "\"\",";
-    QMap<QString, int>::ConstIterator stat_event = eventsAndCounts.begin();
-    while(stat_event != eventsAndCounts.end())
+    QMap<QString, int>::ConstIterator statEventIt = eventsAndCounts.begin();
+    while(statEventIt != eventsAndCounts.end())
     {
-        if (stat_event != eventsAndCounts.begin())
+        if (statEventIt != eventsAndCounts.begin())
         {
             stream << ",";
         }
-        stream << "\"" << (*stat_event) << "\":" << stat_event.key();
-        ++stat_event;
+        stream << "\"" << statEventIt.key() << "\":" << statEventIt.value();
+        ++statEventIt;
     }
 
     stream << "}"
@@ -208,6 +207,12 @@ QString FlurryAgent::formEventToJson(const FlurryEvent& event)
 {
     QString eventData;
     QTextStream stream(&eventData);
+
+    stream << "{\"ce\":" << event.id()
+            << ",\"bp\":\"" << event.eventName()
+            << "\",\"bq\":" << event.deltaTime()
+            << ",\"bs\":{";
+
     QMap<QString, QString>::ConstIterator it = event.parameters().begin();
     while(it != event.parameters().end())
     {
@@ -215,14 +220,11 @@ QString FlurryAgent::formEventToJson(const FlurryEvent& event)
         {
             stream << ",";
         }
-        stream << "\"" << *it << "\":\"" << event.parameters().value(*it) << "\"";
+        stream << "\"" << it.key() << "\":\"" << it.value() << "\"";
+        ++it;
     }
 
-    stream << "{\"ce\":" << CURRENT_EVENT_ID
-            << ",\"bp\":\"" << event.eventName()
-            << "\",\"bq\":" << event.deltaTime()
-            << ",\"bs\":{" << eventData <<"},"
-            << "\"br\":" << event.duration() << "}";
+    stream << "}," << "\"br\":" << event.duration() << "}";
 
     return eventData;
 }
@@ -234,9 +236,9 @@ QString FlurryAgent::formErrorToJson(const ErrorEvent& error)
 
     stream << "{\"cf\":" << CURRENT_ERROR_ID
             << ",\"bz\":\"" << error.errorName()
-            << "\",\"ca\":" << error.errorDesc()
-            << "\",\"cb\":" << error.lineNumber()
-            << ",\"cc\":" << error.timestamp() << "}";
+            << "\",\"ca\":\"" << error.errorDesc()
+            << "\",\"cb\":\"" << error.lineNumber()
+            << "\",\"cc\":" << error.timestamp() << "}";
 
     return errorData;
 }

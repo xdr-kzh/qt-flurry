@@ -26,8 +26,6 @@ int main(int argc, char *argv[])
     props.insert(QString::fromStdString("cores"), QString::fromStdString("4"));
     fa.logEvent("system", props);
     sleep(1);
-    fa.logEvent("system", props);
-    sleep(1);
     fa.logError(QString::fromStdString("ApiError"), QString::fromStdString("Can't parse the data"), 127);
 
     fa.endSession();

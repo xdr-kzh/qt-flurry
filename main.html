@@ -10,9 +10,11 @@
   <script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
 <script>
 function startSession(){
-FlurryAgent.setUserId("ratamahatagmailcom");
+FlurryAgent.setUserId("porracaralho");
 FlurryAgent.setAppVersion("1");
 FlurryAgent.startSession("TTCCY6W2DG9KRMGRVVJH");
+
+setLocation();
 }
 
 function startEvent(){
@@ -27,12 +29,22 @@ function stopSession(){
 FlurryAgent.endSession();
 }
 
-function trackSomeEvent(){
-FlurryAgent.logEvent("voip_call");
+function trackTestEvents(){
+var eventParams = {};
+eventParams['os'] = "MacOSX";
+eventParams['browser'] = "Chromium";
+FlurryAgent.logEvent("environment", eventParams);
+
+var eventParams2 = {};
+eventParams['ram'] = "16";
+eventParams['cores'] = "4";
+FlurryAgent.logEvent("system", eventParams2);
+
+trackCustomError();
 }
 
 function trackCustomError(){
-FlurryAgent.logError("Vk Error", "API Return wrong answer", 127);
+FlurryAgent.logError("ApiError", "Can't parse the data", 127);
 }
 
 function setLocation(){
@@ -45,12 +57,12 @@ FlurryAgent.setLocation(53.2007, 45.0046, 0);
 <div class="container">
   <h2>Flurry JS test page</h2>
   <button type="button" class="btn btn-default" onclick="startSession()">Start session</button>
-  <button type="button" class="btn btn-default" onclick="setLocation()">Set location</button>
-  <button type="button" class="btn btn-default" onclick="startEvent()">Start timed event</button>
-  <button type="button" class="btn btn-default" onclick="trackSomeEvent()">Track another event</button>
-  <button type="button" class="btn btn-default" onclick="trackCustomError()">Track error</button>
-  <button type="button" class="btn btn-default" onclick="endEvent()">End timed event</button>
+  <button type="button" class="btn btn-default" onclick="trackTestEvents()">Track test events and error</button>
   <button type="button" class="btn btn-default" onclick="stopSession()">End session</button>
+
+<button type="button" class="btn btn-default" onclick="setLocation()">Set location</button>
+<button type="button" class="btn btn-default" onclick="startEvent()">Start timed event</button>
+  <button type="button" class="btn btn-default" onclick="endEvent()">End timed event</button>
 </div>
 </body>
 </html>
