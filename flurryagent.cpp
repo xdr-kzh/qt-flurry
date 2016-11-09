@@ -4,7 +4,6 @@
 #include <QNetworkAccessManager>
 #include <QNetworkRequest>
 #include <QNetworkReply>
-#include <QUrlQuery>
 
 #include "utils.h"
 
@@ -97,15 +96,15 @@ void FlurryAgent::sendData()
 
     QNetworkRequest sendDataRequest;
 
-    QUrlQuery urlQuery(FLURRY_BASE_URL);
     QByteArray base64Data;
     base64Data.append(postData);
-    urlQuery.addQueryItem("d", base64Data.toBase64());
-    urlQuery.addQueryItem("c", QString::fromStdString(utils::adler32(postData.toStdString())));
 
-    sendDataRequest.setUrl(urlQuery.query());
+    QString urlQueryData = FLURRY_BASE_URL + "?d=" + base64Data.toBase64() +
+            "&c=" + QString::fromStdString(utils::adler32(postData.toStdString()));
 
-    qDebug() << "[FlurryAgent] " << "Query: " << urlQuery.query();
+    sendDataRequest.setUrl(urlQueryData);
+
+    qDebug() << "[FlurryAgent] " << "Query: " << urlQueryData;
 
     qDebug() << "[FlurryAgent] " << "Data: " << postData;
 
