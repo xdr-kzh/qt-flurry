@@ -164,7 +164,7 @@ QString FlurryAgent::formData()
                << "},";
     }
 
-    stream << "\"bj\":\"" << QLocale::system().name().toLower().replace("_", "-"); << "\",\"bo\":[";
+    stream << "\"bj\":\"" << QLocale::system().name().toLower().replace("_", "-") << "\",\"bo\":[";
 
     QMap<QString, int> eventsAndCounts;
 
