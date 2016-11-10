@@ -16,7 +16,8 @@ qint64 FlurryAgent::CURRENT_ERROR_ID = 0;
     const int FlurryAgent::DEFAULT_SENDING_INTERVAL = 60 * 60 * 1000; // 1 hour for release
 #endif // DEBUG
 
-FlurryAgent::FlurryAgent() : latitude_(0.0), longitude_(0.0), locationAccuracy_(0.0)
+FlurryAgent::FlurryAgent() : latitude_(0.0), longitude_(0.0),
+    locationAccuracy_(0.0), isSending_(false)
 {
     appVersion_ = QCoreApplication::instance()->applicationVersion();
     sendingInterval_ = DEFAULT_SENDING_INTERVAL;
@@ -92,6 +93,16 @@ void FlurryAgent::logError(QString errorName, QString errorMessage, int lineNumb
 
 void FlurryAgent::sendData()
 {
+    if(events_.size() <= 0 && errorEvents_.size() <= 0)
+    {
+        isSending_ = false;
+        return;
+    }
+    else
+    {
+        isSending_  = true;
+    }
+
     const QString& postData = formData();
 
     QNetworkRequest sendDataRequest;
@@ -108,12 +119,16 @@ void FlurryAgent::sendData()
 
     qDebug() << "[FlurryAgent] " << "Data: " << postData;
 
+    emit isSendingChanged(isSending_);
+
     QNetworkReply* postDataReply = networkManager_.get(sendDataRequest);
     postDataReply->connect(postDataReply, &QNetworkReply::finished, [this, postDataReply]
     {
         clearData();
         qDebug() << "[FlurryAgent] " << "data has been sent successfully";
         postDataReply->deleteLater();
+        isSending_ = false;
+        emit isSendingChanged(isSending_);
     });
 }
 

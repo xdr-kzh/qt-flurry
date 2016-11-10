@@ -6,9 +6,12 @@
 #include <QList>
 #include <QNetworkAccessManager>
 #include <QTimer>
+#include <QObject>
 
 class FlurryAgent : public QObject
 {
+    Q_OBJECT
+
     const static QString FLURRY_BASE_URL;
     static qint64 CURRENT_EVENT_ID;
     static qint64 CURRENT_ERROR_ID;
@@ -83,12 +86,13 @@ public:
 
     QString formData();
 
+signals:
+    void isSendingChanged(bool isSending);
+
 private slots:
     void sendData();
 
 private:
-    FlurryAgent(const FlurryAgent&) = delete;
-//    QString formData();
     void clearData();
 
     QString formErrorToJson(const ErrorEvent& error);
@@ -111,6 +115,7 @@ private:
     double latitude_;
     double longitude_;
     float locationAccuracy_;
+    bool isSending_;
 };
 
 #endif // FLURRYAGENT_H
