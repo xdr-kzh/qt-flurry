@@ -4,6 +4,7 @@
 #include <QNetworkAccessManager>
 #include <QNetworkRequest>
 #include <QNetworkReply>
+#include <QLocale>
 
 #include "utils.h"
 
@@ -163,7 +164,7 @@ QString FlurryAgent::formData()
                << "},";
     }
 
-    stream << "\"bj\":\"ru\",\"bo\":[";
+    stream << "\"bj\":\"" << QLocale::system().name().toLower().replace("_", "-"); << "\",\"bo\":[";
 
     QMap<QString, int> eventsAndCounts;
 
@@ -195,8 +196,7 @@ QString FlurryAgent::formData()
         ++statEventIt;
     }
 
-    stream << "}"
-        <<",\"bv\":[],\"bt\":false,\"bu\":{},\"by\":[";
+    stream << "}" <<",\"bv\":[],\"bt\":false,\"bu\":{},\"by\":[";
 
     auto error = errorEvents_.begin();
     while(error != errorEvents_.end())
