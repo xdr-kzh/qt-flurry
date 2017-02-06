@@ -7,6 +7,7 @@
 #include <QLocale>
 
 #include "utils.h"
+#include "qreplytimeout.h"
 
 const QString FlurryAgent::FLURRY_BASE_URL = QString::fromUtf8("https://data.flurry.com/aah.do");
 qint64 FlurryAgent::CURRENT_EVENT_ID = 0;
@@ -123,6 +124,7 @@ void FlurryAgent::sendData()
     emit isSendingChanged(isSending_);
 
     QNetworkReply* postDataReply = networkManager_.get(sendDataRequest);
+    new QReplyTimeout(postDataReply, 5000);
     postDataReply->connect(postDataReply, &QNetworkReply::finished, [this, postDataReply]
     {
         clearData();
