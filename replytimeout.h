@@ -1,15 +1,15 @@
-#ifndef QREPLYTIMEOUT_H
-#define QREPLYTIMEOUT_H
+#ifndef REPLYTIMEOUT_H
+#define REPLYTIMEOUT_H
 
 #include <QObject>
 #include <QNetworkReply>
 #include <QTimer>
 
-class QReplyTimeout : public QObject
+class ReplyTimeout : public QObject
 {
     Q_OBJECT
 public:
-    QReplyTimeout(QNetworkReply* reply, const int timeout) : QObject(reply) {
+    ReplyTimeout(QNetworkReply* reply, const int timeout) : QObject(reply) {
         Q_ASSERT(reply);
         if (reply) {
           QTimer::singleShot(timeout, this, SLOT(timeout()));
@@ -25,4 +25,4 @@ private slots:
       }
 };
 
-#endif // QREPLYTIMEOUT_H
+#endif // REPLYTIMEOUT_H
