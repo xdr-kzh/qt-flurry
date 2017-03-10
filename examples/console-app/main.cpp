@@ -10,10 +10,10 @@ int main(int argc, char *argv[])
 {
     QCoreApplication app(argc, argv);
     FlurryAgent fa;
-    fa.setUserId("porracaralho");
+    fa.setUserId("testuser");
     fa.setAppVersion(QString::number(2));
     fa.setLocation(53.2007, 45.0046, 0);
-    fa.startSession("TTCCY6W2DG9KRMGRVVJH");
+    fa.startSession("YOUR_API_KEY");
 
     QMap<QString, QString> props;
     props.insert(QString::fromStdString("os"), QString::fromStdString("MacOSX"));
